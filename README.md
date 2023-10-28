@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up WireGuard Connection
-      uses: niklaskeerl/wireguard-quick-setup-action
+      uses: niklaskeerl/wireguard-quick-setup-action@v1
       with:
         WG_CONFIG_FILE: ${{ secrets.WG_CONFIG_FILE }}
 ```
