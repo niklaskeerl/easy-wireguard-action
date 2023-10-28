@@ -18,3 +18,7 @@ runs:
               echo "setting config"
               sudo wg-quick up ./wg0.conf
           shell: bash
+
+branding:
+  icon: shield
+  color: red
