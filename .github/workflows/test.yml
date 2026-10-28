@@ -1,0 +1,44 @@
+name: Test WireGuard setup
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect with a synthetic configuration
+        uses: ./
+        with:
+          # Synthetic key and address; this test has no peer or external VPN.
+          WG_CONFIG_FILE: |
+            [Interface]
+            PrivateKey = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            Address = 192.0.2.1/32
+
+      - name: Verify interface and configuration permissions
+        shell: bash
+        run: |
+          sudo wg show wg0 > /dev/null
+          ip -4 address show dev wg0 | grep -F '192.0.2.1/32'
+          test "$(sudo stat -c '%U:%G %a' /etc/wireguard/wg0.conf)" = 'root:root 600'
+          test ! -e wg0.conf
+
+      - name: Remove test interface and configuration
+        if: always()
+        shell: bash
+        run: |
+          if ip link show wg0 > /dev/null 2>&1; then
+            sudo wg-quick down wg0
+          fi
+          sudo rm -f /etc/wireguard/wg0.conf

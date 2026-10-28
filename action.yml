@@ -10,13 +10,15 @@ runs:
     using: composite
     steps:
         - run: |
-              sudo apt install resolvconf
-              sudo apt install wireguard
-              echo "${{ inputs.WG_CONFIG_FILE }}" > wg0.conf
-              sudo chmod 600 wg0.conf
+              sudo apt-get install --yes resolvconf wireguard
+              sudo install -d -m 700 /etc/wireguard
+              sudo install -m 600 /dev/null /etc/wireguard/wg0.conf
               echo "setting config"
-              sudo wg-quick up ./wg0.conf
+              printf '%s\n' "$WG_CONFIG_FILE" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+              sudo wg-quick up wg0
           shell: bash
+          env:
+              WG_CONFIG_FILE: ${{ inputs.WG_CONFIG_FILE }}
 
 branding:
   icon: shield
